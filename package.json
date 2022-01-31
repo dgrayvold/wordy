@@ -1,0 +1,30 @@
+{
+  "name": "wordle-clone",
+  "version": "0.0.0",
+  "scripts": {
+    "dev": "grep -x '.\\{5\\}' ./node_modules/word-list/words.txt | sed 'y/abcdefghijklmnopqrstuvwxyz/ABCDEFGHIJKLMNOPQRSTUVWXYZ/' > ./public/words.txt; vite",
+    "build": "grep -x '.\\{5\\}' ./node_modules/word-list/words.txt | sed 'y/abcdefghijklmnopqrstuvwxyz/ABCDEFGHIJKLMNOPQRSTUVWXYZ/' > ./public/words.txt; vite-ssg build",
+    "serve": "vite preview"
+  },
+  "dependencies": {
+    "@fontsource/exo": "^4.5.1",
+    "@headlessui/vue": "^1.4.3",
+    "simple-keyboard": "^3.4.30",
+    "vue": "3.2.19",
+    "vue-confetti-explosion": "^1.0.1",
+    "vuex": "4.0.2",
+    "word-list": "^3.1.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "1.9.2",
+    "@vue/compiler-sfc": "3.2.19",
+    "@vue/server-renderer": "3.2.19",
+    "@vueuse/head": "0.5.1",
+    "prettier": "2.4.1",
+    "vite": "2.6.2",
+    "vite-plugin-windicss": "1.4.8",
+    "vite-ssg": "0.15.4",
+    "vue-router": "4.0.11",
+    "windicss": "3.1.8"
+  }
+}
