@@ -1,6 +1,6 @@
 <template>
-	<main class="flex flex-col justify-center items-between">
-		<ul class="pt-4 flex-grow">
+	<main class="flex flex-col justify-center items-between max-h-full">
+		<ul class="grid grid-flow-row pt-4 flex-grow content-center">
 			<WordRow
 				v-for="x in totalTries"
 				:ref="`row-${x}`"
@@ -324,7 +324,17 @@ export default {
 
 <style scoped lang="postcss">
 main {
-	@apply bg-black min-h-[100vh] h-[100vh] w-[100vw];
+	@apply bg-black w-full;
+
+	height: 100vh;
+	max-height: -webkit-fill-available;
+	max-height: -moz-available;
+	max-height: fill-available;
+
+	padding-top: env(safe-area-inset-top);
+	padding-left: env(safe-area-inset-left);
+	padding-right: env(safe-area-inset-right);
+	padding-bottom: env(safe-area-inset-bottom);
 }
 
 @media screen and (max-height: 550px) {

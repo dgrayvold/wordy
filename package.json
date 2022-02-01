@@ -1,10 +1,10 @@
 {
-  "name": "wordle-clone",
-  "version": "0.0.0",
+  "name": "wordy",
+  "version": "1.0.0",
   "scripts": {
     "dev": "grep -x '.\\{5\\}' ./node_modules/word-list/words.txt | sed 'y/abcdefghijklmnopqrstuvwxyz/ABCDEFGHIJKLMNOPQRSTUVWXYZ/' > ./public/words.txt; vite",
     "build": "grep -x '.\\{5\\}' ./node_modules/word-list/words.txt | sed 'y/abcdefghijklmnopqrstuvwxyz/ABCDEFGHIJKLMNOPQRSTUVWXYZ/' > ./public/words.txt; vite-ssg build",
-    "serve": "vite preview"
+    "serve": "grep -x '.\\{5\\}' ./node_modules/word-list/words.txt | sed 'y/abcdefghijklmnopqrstuvwxyz/ABCDEFGHIJKLMNOPQRSTUVWXYZ/' > ./public/words.txt; vite preview"
   },
   "dependencies": {
     "@fontsource/exo": "^4.5.1",
