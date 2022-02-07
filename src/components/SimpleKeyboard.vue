@@ -84,9 +84,9 @@ export default {
 			},
 			layout: {
 				default: [
-					'Q W E R T Y U I O P {Del}',
+					'Q W E R T Y U I O P',
 					'A S D F G H J K L',
-					'{Enter} Z X C V B N M {Enter}',
+					'{Del} Z X C V B N M {Enter}',
 				],
 			},
 			theme: 'hg-theme-default hg-layout-default myTheme loading',
@@ -126,8 +126,12 @@ export default {
 }
 
 .hg-button {
-	@apply !border-2 !border-transparent !bg-true-gray-700 font-bold text-theme transition-colors min-w-6;
+	@apply !border-2 !border-transparent !bg-true-gray-700 font-bold text-theme transition-colors min-w-6 text-[1.2rem];
 	@apply hover:(!bg-true-gray-500);
+}
+
+.hg-theme-default button.hg-button.hg-button-Del {
+	@apply !text-[1.5rem];
 }
 
 .miss {
