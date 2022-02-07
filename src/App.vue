@@ -1,6 +1,15 @@
 <template>
 	<main class="flex flex-col justify-center items-between max-h-full">
-		<ul class="grid grid-flow-row pt-4 flex-grow content-center">
+		<ul
+			class="
+				max-w-[90vw]
+				mx-auto
+				grid grid-flow-row
+				pt-4
+				flex-grow
+				content-center
+			"
+		>
 			<WordRow
 				v-for="x in totalTries"
 				:ref="`row-${x}`"
