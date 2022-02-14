@@ -190,7 +190,10 @@ export default {
 						!this.characters.appeared.includes(character)
 					) {
 						this.characters.appeared.push(character);
-					} else if (!this.characters.missed.includes(character)) {
+					} else if (
+						!wordCharacters.includes(character) &&
+						!this.characters.missed.includes(character)
+					) {
 						this.characters.missed.push(character);
 					}
 				},
