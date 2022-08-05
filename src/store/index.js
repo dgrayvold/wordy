@@ -1,6 +1,9 @@
 import { createStore } from 'vuex';
 
-export const store = createStore({
+/**
+ * Game save data & state
+ */
+const gameModule = {
 	state() {
 		return {
 			record: [],
@@ -48,5 +51,21 @@ export const store = createStore({
 				gamesPlayed: state.record.length,
 			};
 		},
+	},
+};
+
+/**
+ * Source word list
+ */
+const dataModule = {
+	state: {
+		words: [],
+	},
+};
+
+export const store = createStore({
+	modules: {
+		data: dataModule,
+		game: gameModule,
 	},
 });

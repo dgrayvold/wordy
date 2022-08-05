@@ -117,29 +117,20 @@ export default {
 	},
 
 	async beforeCreate() {
-		let saveData = null;
-
-		if (typeof window != 'undefined') {
-			saveData = localStorage.getItem('saveData');
-		}
-
-		if (saveData) {
-			this.$store.replaceState(JSON.parse(saveData));
-		}
-
 		this.$store.subscribe(async mutation => {
-			localStorage.setItem('saveData', JSON.stringify(this.$store.state));
+			localStorage.setItem(
+				'saveData',
+				JSON.stringify(this.$store.state.game),
+			);
 		});
 	},
 
 	async mounted() {
-		// Load the word list
-		this.words = await fetch('/words.txt')
-			.then(r => r.text())
-			.then(content => content.split('\n'));
-		const randomPosition = Math.floor(Math.random() * this.words.length);
+		const randomPosition = Math.floor(
+			Math.random() * this.$store.state.data.words.length,
+		);
 
-		this.currentWord = this.words[randomPosition];
+		this.currentWord = this.$store.state.data.words[randomPosition];
 
 		// Listen for physical keyboard presses
 		window.addEventListener('keydown', this.handleKeyboardAction);
@@ -169,35 +160,32 @@ export default {
 		 */
 		checkGuess() {
 			// Current guess is not a recognized word
-			if (!this.words.includes(this.activeGuess)) {
+			if (!this.$store.state.data.words.includes(this.activeGuess)) {
 				this.$refs[`row-${this.activeGuessIndex + 1}`].indicateError();
 				return;
 			}
 
 			// Current guess is a word
-
 			const wordCharacters = Array.from(this.currentWord);
 
-			Array.from(this.activeGuess).forEach(
-				(character, index, allCharacters) => {
-					if (
-						wordCharacters[index] == character &&
-						!this.characters.matched.includes(character)
-					) {
-						this.characters.matched.push(character);
-					} else if (
-						wordCharacters.includes(character) &&
-						!this.characters.appeared.includes(character)
-					) {
-						this.characters.appeared.push(character);
-					} else if (
-						!wordCharacters.includes(character) &&
-						!this.characters.missed.includes(character)
-					) {
-						this.characters.missed.push(character);
-					}
-				},
-			);
+			Array.from(this.activeGuess).forEach((character, index) => {
+				if (
+					wordCharacters[index] == character &&
+					!this.characters.matched.includes(character)
+				) {
+					this.characters.matched.push(character);
+				} else if (
+					wordCharacters.includes(character) &&
+					!this.characters.appeared.includes(character)
+				) {
+					this.characters.appeared.push(character);
+				} else if (
+					!wordCharacters.includes(character) &&
+					!this.characters.missed.includes(character)
+				) {
+					this.characters.missed.push(character);
+				}
+			});
 
 			// Word guessed
 			if (this.currentWord == this.activeGuess) {
@@ -288,7 +276,11 @@ export default {
 				matched: [],
 			};
 			this.currentWord =
-				this.words[Math.floor(Math.random() * this.words.length)];
+				this.$store.state.data.words[
+					Math.floor(
+						Math.random() * this.$store.state.data.words.length,
+					)
+				];
 
 			setTimeout(this.presentGame, 500);
 		},
