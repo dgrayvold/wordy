@@ -36,11 +36,7 @@
 			}"
 			tabindex="0"
 		>
-			<WordRow
-				:word="title"
-				:currentGuess="currentWord"
-				:state="rowState"
-			/>
+			<WordRow :word="title" :currentGuess="currentWord" :state="rowState" />
 		</div>
 	</Dialog>
 </template>
@@ -62,10 +58,7 @@ const dialogDisplayed = ref(true);
 const emit = defineEmits(['complete']);
 
 for (let x = 0; x < 5; x++) {
-	setTimeout(
-		() => (currentWord.value = title.slice(0, x + 1)),
-		(x + 1) * 150 + 400,
-	);
+	setTimeout(() => (currentWord.value = title.slice(0, x + 1)), (x + 1) * 150 + 400);
 }
 
 setTimeout(() => (rowState.value = 'complete'), 2000);

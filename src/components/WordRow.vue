@@ -7,18 +7,10 @@
 			:class="{
 				'border-[#09f]': state == `active`,
 				'border-[#037]': state != `active`,
-				'bg-blue-500':
-					state == `complete` &&
-					characterMatches[index - 1] == `matches`,
-				'bg-black':
-					state == `complete` &&
-					characterMatches[index - 1] == `misses`,
-				'bg-gray-500':
-					state == `complete` &&
-					characterMatches[index - 1] == `appears`,
-				'!text-black':
-					state == `complete` &&
-					characterMatches[index - 1] == `appears`,
+				'bg-blue-500': state == `complete` && characterMatches[index - 1] == `matches`,
+				'bg-black': state == `complete` && characterMatches[index - 1] == `misses`,
+				'bg-gray-500': state == `complete` && characterMatches[index - 1] == `appears`,
+				'!text-black': state == `complete` && characterMatches[index - 1] == `appears`,
 				'-rotate-30': state !== 'complete' && !displayed[index - 1],
 				'opacity-0': state !== 'complete' && !displayed[index - 1],
 			}"

@@ -42,7 +42,7 @@
 				<div
 					v-for="(count, guesses) in stats.distribution"
 					:key="guesses"
-					class="grid grid-cols-[1.2rem,1fr] my-1"
+					class="grid grid-cols-[1.2rem_1fr] my-1"
 				>
 					<span> {{ guesses }}: </span>
 					<span
@@ -60,9 +60,7 @@
 		<div class="dialog-measurements pointer-events-none">
 			<div class="block w-1 mx-auto">
 				<ConfettiExplosion
-					v-if="
-						active && stats.currentStreak >= 3 && stats.onHighStreak
-					"
+					v-if="active && stats.currentStreak >= 3 && stats.onHighStreak"
 					:colors="[`#09f`, `#05f`, `#01f`, `#019`]"
 				/>
 			</div>

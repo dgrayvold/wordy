@@ -1,15 +1,6 @@
 <template>
 	<main class="flex flex-col justify-center items-between max-h-full">
-		<ul
-			class="
-				max-w-[90vw]
-				mx-auto
-				grid grid-flow-row
-				pt-4
-				flex-grow
-				content-center
-			"
-		>
+		<ul class="max-w-[90vw] mx-auto grid grid-flow-row pt-4 flex-grow content-center">
 			<WordRow
 				v-for="x in totalTries"
 				:ref="`row-${x}`"
@@ -21,22 +12,13 @@
 			/>
 		</ul>
 
-		<SimpleKeyboard
-			@keypress="updateCurrentGuess"
-			:characters="characters"
-			:loaded="loaded"
-		/>
+		<SimpleKeyboard @keypress="updateCurrentGuess" :characters="characters" :loaded="loaded" />
 	</main>
 
 	<client-only>
 		<IntroDialog @complete="presentGame" />
 
-		<GameOverDialog
-			:active="gameOver"
-			:won="gameWon"
-			:word="currentWord"
-			@reset="resetGame"
-		/>
+		<GameOverDialog :active="gameOver" :won="gameWon" :word="currentWord" @reset="resetGame" />
 	</client-only>
 </template>
 
@@ -118,17 +100,12 @@ export default {
 
 	async beforeCreate() {
 		this.$store.subscribe(async mutation => {
-			localStorage.setItem(
-				'saveData',
-				JSON.stringify(this.$store.state.game),
-			);
+			localStorage.setItem('saveData', JSON.stringify(this.$store.state.game));
 		});
 	},
 
 	async mounted() {
-		const randomPosition = Math.floor(
-			Math.random() * this.$store.state.data.words.length,
-		);
+		const randomPosition = Math.floor(Math.random() * this.$store.state.data.words.length);
 
 		this.currentWord = this.$store.state.data.words[randomPosition];
 
@@ -161,7 +138,7 @@ export default {
 		checkGuess() {
 			// Current guess is not a recognized word
 			if (!this.$store.state.data.words.includes(this.activeGuess)) {
-				this.$refs[`row-${this.activeGuessIndex + 1}`].indicateError();
+				this.$refs[`row-${this.activeGuessIndex + 1}`][0].indicateError();
 				return;
 			}
 
@@ -239,10 +216,7 @@ export default {
 				this.updateCurrentGuess(event.key.toUpperCase());
 			} else if (['Delete', 'Backspace'].includes(event.key)) {
 				this.updateCurrentGuess('{Del}');
-			} else if (
-				this.activeGuess.length == 5 &&
-				['Enter', 'Return'].includes(event.key)
-			) {
+			} else if (this.activeGuess.length == 5 && ['Enter', 'Return'].includes(event.key)) {
 				this.updateCurrentGuess('{Enter}');
 			}
 		},
@@ -252,7 +226,7 @@ export default {
 		 */
 		presentGame() {
 			for (let i = 1; i <= 6; i++) {
-				setTimeout(() => this.$refs[`row-${i}`].present(), i * 100);
+				setTimeout(() => this.$refs[`row-${i}`][0].present(), i * 100);
 			}
 
 			setTimeout(() => (this.loaded = true), 600);
@@ -263,7 +237,7 @@ export default {
 		 */
 		resetGame() {
 			for (let i = 1; i <= 6; i++) {
-				this.$refs[`row-${i}`].resetPresentation();
+				this.$refs[`row-${i}`][0].resetPresentation();
 			}
 
 			this.gameOver = false;
@@ -277,9 +251,7 @@ export default {
 			};
 			this.currentWord =
 				this.$store.state.data.words[
-					Math.floor(
-						Math.random() * this.$store.state.data.words.length,
-					)
+					Math.floor(Math.random() * this.$store.state.data.words.length)
 				];
 
 			setTimeout(this.presentGame, 500);

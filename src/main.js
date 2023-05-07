@@ -1,8 +1,8 @@
-// import { createApp } from 'vue';
 import { ViteSSG } from 'vite-ssg/single-page';
 import { store } from './store/index.js';
 import App from './App.vue';
-import 'virtual:windi.css';
+import 'virtual:uno.css';
+import '@unocss/reset/tailwind.css';
 import '@fontsource/exo';
 import words from 'word-list/words.txt?raw';
 
