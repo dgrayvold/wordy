@@ -1,15 +1,22 @@
 import { ViteSSG } from 'vite-ssg/single-page';
-import { store } from './store/index.js';
+import { createPinia } from 'pinia';
+import piniaPluginPersistedstate from 'pinia-plugin-persistedstate';
 import App from './App.vue';
 import 'virtual:uno.css';
 import '@unocss/reset/tailwind.css';
 import '@fontsource/exo';
-import words from 'word-list/words.txt?raw';
+import sourceWords from 'word-list/words.txt?raw';
+import { useSaveData } from '@/store/save-data';
+import { useWords } from '@/store/words.js';
 
 export const createApp = ViteSSG(App, ({ app, isClient, initialState }) => {
+	const pinia = createPinia();
+
+	app.use(pinia);
+
 	// Process the word list on build
-	if (import.meta.env.SSR || import.meta.env.DEV) {
-		const gameWords = words
+	if (import.meta.env.SSR || import.meta.env.MODE == 'development') {
+		const gameWords = sourceWords
 			.split('\n')
 			.filter(word => word.length == 5)
 			.map(word => word.toUpperCase());
@@ -17,23 +24,24 @@ export const createApp = ViteSSG(App, ({ app, isClient, initialState }) => {
 		initialState.data = { words: gameWords };
 	}
 
-	// Hydrate the game state and word list on load
-	let gameData;
-
 	if (isClient) {
-		const storedSaveData = localStorage.getItem('saveData');
+		pinia.use(piniaPluginPersistedstate);
 
-		gameData = storedSaveData
-			? JSON.parse(storedSaveData)
-			: JSON.parse(JSON.stringify(store.state.game));
+		const oldSaveData = localStorage.getItem('saveData');
+
+		if (oldSaveData != null) {
+			console.info('Old save data found, migrating…');
+
+			const { migrateOldSaveData } = useSaveData(pinia);
+
+			migrateOldSaveData(oldSaveData);
+
+			localStorage.removeItem('saveData');
+		}
+
+		// Load word list
+		const { words } = useWords(pinia);
+
+		words.push(...initialState.data.words);
 	}
-
-	store.replaceState({
-		data: {
-			words: initialState.data.words,
-		},
-		game: gameData,
-	});
-
-	app.use(store);
 });

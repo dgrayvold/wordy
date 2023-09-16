@@ -4,113 +4,112 @@
 	</div>
 </template>
 
-<script>
+<script setup>
+import { onMounted, ref, watch } from 'vue';
 import Keyboard from 'simple-keyboard';
 import 'simple-keyboard/build/css/index.css';
 
-export default {
-	name: 'SimpleKeyboard',
-
-	props: {
-		/**
-		 * The list of guessed characters and their relation to the game word
-		 */
-		characters: {
-			type: Object,
-		},
-
-		/**
-		 * Whether the game is loaded and ready to present the keyboard
-		 */
-		loaded: {
-			type: Boolean,
-		},
+const props = defineProps({
+	/**
+	 * The list of guessed characters and their relation to the game word
+	 */
+	characters: {
+		type: Object,
 	},
 
+	/**
+	 * Whether the game is loaded and ready to present the keyboard
+	 */
+	loaded: {
+		type: Boolean,
+	},
+});
+
+const emit = defineEmits(['change', 'keypress']);
+
+const keyboard = ref(null);
+
+onMounted(() => {
+	keyboard.value = new Keyboard('keyboard', {
+		onChange: onChange,
+		onKeyPress: onKeyPress,
+		disableButtonHold: true,
+		display: {
+			'{Enter}': 'TRY',
+			'{Del}': '⌫',
+		},
+		layout: {
+			default: ['Q W E R T Y U I O P', 'A S D F G H J K L', '{Del} Z X C V B N M {Enter}'],
+		},
+		theme: 'hg-theme-default hg-layout-default myTheme loading',
+		useButtonTag: true,
+	});
+});
+
+// Watch loaded prop
+watch(props, () => {
+	keyboard.value.setOptions({
+		theme: `hg-theme-default hg-layout-default myTheme`,
+	});
+});
+
+// Watch characters prop
+watch(
+	props,
+	newValues => {
+		const n = newValues.characters;
+		const buttonThemeEntries = [];
+
+		if (n.missed.length) {
+			buttonThemeEntries.push({
+				class: 'miss',
+				buttons: n.missed.join(' '),
+			});
+		}
+		if (n.appeared.length) {
+			buttonThemeEntries.push({
+				class: 'appear',
+				buttons: n.appeared.join(' '),
+			});
+		}
+		if (n.matched.length) {
+			buttonThemeEntries.push({
+				class: 'match',
+				buttons: n.matched.join(' '),
+			});
+		}
+
+		keyboard.value.setOptions({
+			buttonTheme: buttonThemeEntries,
+		});
+	},
+	{ deep: true },
+);
+
+/**
+ * Emit a change event on input
+ *
+ * @param {String} input The input value that triggered the event
+ */
+function onChange(input) {
+	emit('change', input);
+}
+
+/**
+ * Emit a change event on key down of the keyboard
+ *
+ * @param {String} button The value of the key that triggered the event
+ */
+function onKeyPress(button) {
+	emit('keypress', button);
+}
+</script>
+
+<script>
+export default {
 	watch: {
 		input(input) {
 			this.keyboard.setInput(input);
-		},
-
-		loaded() {
-			this.keyboard.setOptions({
-				theme: `hg-theme-default hg-layout-default myTheme`,
-			});
-		},
-
-		characters: {
-			handler: function (n) {
-				const buttonThemeEntries = [];
-
-				if (n.missed.length) {
-					buttonThemeEntries.push({
-						class: 'miss',
-						buttons: n.missed.join(' '),
-					});
-				}
-				if (n.appeared.length) {
-					buttonThemeEntries.push({
-						class: 'appear',
-						buttons: n.appeared.join(' '),
-					});
-				}
-				if (n.matched.length) {
-					buttonThemeEntries.push({
-						class: 'match',
-						buttons: n.matched.join(' '),
-					});
-				}
-
-				this.keyboard.setOptions({
-					buttonTheme: buttonThemeEntries,
-				});
-			},
-			deep: true,
-		},
-	},
-
-	data: () => ({
-		keyboard: null,
-	}),
-
-	mounted() {
-		this.keyboard = new Keyboard('keyboard', {
-			onChange: this.onChange,
-			onKeyPress: this.onKeyPress,
-			disableButtonHold: true,
-			display: {
-				'{Enter}': 'TRY',
-				'{Del}': '⌫',
-			},
-			layout: {
-				default: [
-					'Q W E R T Y U I O P',
-					'A S D F G H J K L',
-					'{Del} Z X C V B N M {Enter}',
-				],
-			},
-			theme: 'hg-theme-default hg-layout-default myTheme loading',
-			useButtonTag: true,
-		});
-	},
-
-	methods: {
-		/**
-		 * Emit a change event on input
-		 *
-		 * @param {String} input The input value that triggered the event
-		 */
-		onChange(input) {
-			this.$emit('change', input);
-		},
-
-		/**
-		 * Emit a change event on key down of the keyboard
-		 *
-		 * @param {String} button The value of the key that triggered the event
-		 */
-		onKeyPress(button) {
-			this.$emit('keypress', button);
 		},
 	},
 };

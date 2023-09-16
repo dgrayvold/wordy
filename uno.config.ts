@@ -8,7 +8,7 @@ export default defineConfig({
 		presetWebFonts({
 			provider: 'none',
 			fonts: {
-				text: [],
+				text: ['Exo'],
 			},
 		}),
 		presetWind(),

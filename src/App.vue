@@ -3,7 +3,7 @@
 		<ul class="max-w-[90vw] mx-auto grid grid-flow-row pt-4 flex-grow content-center">
 			<WordRow
 				v-for="x in totalTries"
-				:ref="`row-${x}`"
+				:ref="el => (rows[x - 1] = el)"
 				:key="x"
 				:word="currentWord ?? ``"
 				:currentGuess="guesses[Number(x) - 1]"
@@ -22,280 +22,251 @@
 	</client-only>
 </template>
 
-<script>
+<script setup>
+import { computed, onMounted, reactive, ref } from 'vue';
 import WordRow from '@/components/WordRow.vue';
 import SimpleKeyboard from '@/components/SimpleKeyboard.vue';
 import GameOverDialog from '@/components/GameOverDialog.vue';
 import IntroDialog from '@/components/IntroDialog.vue';
+import { useSaveData } from '@/store/save-data.js';
+import { useWords } from '@/store/words.js';
 
-export default {
-	components: {
-		SimpleKeyboard,
-		WordRow,
-		GameOverDialog,
-		IntroDialog,
-	},
+const { saveGameRecord } = useSaveData();
 
-	data() {
-		return {
-			/**
-			 * The word for the current round
-			 */
-			currentWord: null,
+const { words } = useWords();
 
-			/**
-			 * The list of guesses the user has made
-			 */
-			guesses: Array(6).fill(''),
+/**
+ * The total number of tries the user gets
+ */
+const totalTries = 6;
 
-			/**
-			 * The index of the current guess
-			 */
-			activeGuessIndex: 0,
+/**
+ * Which guess in the list is currently active
+ */
+const activeGuess = computed(() => {
+	return guesses.value[activeGuessIndex.value];
+});
 
-			/**
-			 * The total number of tries the user gets
-			 */
-			totalTries: 6,
+/**
+ * The index of the current guess
+ */
+const activeGuessIndex = ref(0);
 
-			/**
-			 * The list of possible words
-			 */
-			words: null,
+/**
+ * The list of characters guessed
+ */
+const characters = reactive({
+	appeared: [], // In the word but not in the correct position
+	missed: [], // Not in the word
+	matched: [], // In the word in the correct position
+});
 
-			/**
-			 * Whether the game has finished
-			 */
-			gameOver: false,
+/**
+ * The word for the current round
+ */
+const currentWord = ref(null);
 
-			/**
-			 * Whether the current game was won
-			 */
-			gameWon: null,
+/**
+ * Whether the game has finished
+ */
+const gameOver = ref(false);
 
-			/**
-			 * Whether the game is ready to present
-			 */
-			loaded: false,
+/**
+ * Whether the current game was won
+ */
+const gameWon = ref(null);
 
-			/**
-			 * The list of characters guessed
-			 */
-			characters: {
-				appeared: [], // In the word but not in the correct position
-				missed: [], // Not in the word
-				matched: [], // In the word in the correct position
-			},
-		};
-	},
+/**
+ * The list of guesses the user has made
+ */
+const guesses = ref(Array(6).fill(''));
 
-	computed: {
-		/**
-		 * Which guess in the list is currently active
-		 */
-		activeGuess() {
-			return this.guesses[this.activeGuessIndex];
-		},
-	},
+/**
+ * Whether the game is ready to present
+ */
+const loaded = ref(false);
 
-	async beforeCreate() {
-		this.$store.subscribe(async mutation => {
-			localStorage.setItem('saveData', JSON.stringify(this.$store.state.game));
-		});
-	},
+/**
+ * The list of word row refs
+ */
+const rows = reactive([]);
 
-	async mounted() {
-		const randomPosition = Math.floor(Math.random() * this.$store.state.data.words.length);
+onMounted(async () => {
+	const randomPosition = Math.floor(Math.random() * words.length);
 
-		this.currentWord = this.$store.state.data.words[randomPosition];
+	currentWord.value = words[randomPosition];
 
-		// Listen for physical keyboard presses
-		window.addEventListener('keydown', this.handleKeyboardAction);
-	},
+	// Listen for physical keyboard presses
+	window.addEventListener('keydown', handleKeyboardAction);
+});
 
-	methods: {
-		/**
-		 * Generate the state value of each word row
-		 *
-		 * @param {Number} rowIndex The index of the row to calculate the state of
-		 */
-		calculateRowState(rowIndex) {
-			if (
-				this.activeGuessIndex > rowIndex ||
-				(this.gameOver && this.activeGuessIndex >= rowIndex)
-			) {
-				return 'complete';
-			} else if (this.activeGuessIndex == rowIndex) {
-				return 'active';
-			}
+/**
+ * Generate the state value of each word row
+ *
+ * @param {Number} rowIndex The index of the row to calculate the state of
+ */
+function calculateRowState(rowIndex) {
+	if (
+		activeGuessIndex.value > rowIndex ||
+		(gameOver.value && activeGuessIndex.value >= rowIndex)
+	) {
+		return 'complete';
+	} else if (activeGuessIndex.value == rowIndex) {
+		return 'active';
+	}
 
-			return 'inactive';
-		},
+	return 'inactive';
+}
 
-		/**
-		 * Set game state based on the latest word guess
-		 */
-		checkGuess() {
-			// Current guess is not a recognized word
-			if (!this.$store.state.data.words.includes(this.activeGuess)) {
-				this.$refs[`row-${this.activeGuessIndex + 1}`][0].indicateError();
-				return;
-			}
+/**
+ * Set game state based on the latest word guess
+ */
+function checkGuess() {
+	// Current guess is not a recognized word
+	if (!words.includes(activeGuess.value)) {
+		rows[activeGuessIndex.value].indicateError();
+		return;
+	}
 
-			// Current guess is a word
-			const wordCharacters = Array.from(this.currentWord);
+	// Current guess is a word
+	const wordCharacters = Array.from(currentWord.value);
 
-			Array.from(this.activeGuess).forEach((character, index) => {
-				if (
-					wordCharacters[index] == character &&
-					!this.characters.matched.includes(character)
-				) {
-					this.characters.matched.push(character);
-				} else if (
-					wordCharacters.includes(character) &&
-					!this.characters.appeared.includes(character)
-				) {
-					this.characters.appeared.push(character);
-				} else if (
-					!wordCharacters.includes(character) &&
-					!this.characters.missed.includes(character)
-				) {
-					this.characters.missed.push(character);
-				}
-			});
+	Array.from(activeGuess.value).forEach((character, index) => {
+		if (wordCharacters[index] == character && !characters.matched.includes(character)) {
+			characters.matched.push(character);
+		} else if (wordCharacters.includes(character) && !characters.appeared.includes(character)) {
+			characters.appeared.push(character);
+		} else if (!wordCharacters.includes(character) && !characters.missed.includes(character)) {
+			characters.missed.push(character);
+		}
+	});
 
-			// Word guessed
-			if (this.currentWord == this.activeGuess) {
-				this.gameWon = true;
-				this.gameOver = true;
+	// Word guessed
+	if (currentWord.value == activeGuess.value) {
+		gameWon.value = true;
+		gameOver.value = true;
 
-				this.storeGameRecord();
+		storeGameRecord();
 
-				return;
-			}
+		return;
+	}
 
-			this.activeGuessIndex++;
+	activeGuessIndex.value++;
 
-			// Total guesses spent, game over
-			if (this.activeGuessIndex == this.totalTries) {
-				this.gameWon = false;
-				this.gameOver = true;
+	// Total guesses spent, game over
+	if (activeGuessIndex.value == totalTries) {
+		gameWon.value = false;
+		gameOver.value = true;
 
-				this.storeGameRecord();
+		storeGameRecord();
 
-				return;
-			}
-		},
+		return;
+	}
+}
 
-		/**
-		 * Handle physical keyboard events
-		 *
-		 * @param {Event} event The triggering event
-		 */
-		handleKeyboardAction(event) {
-			const { altKey, ctrlKey, shiftKey, metaKey } = event;
+/**
+ * Handle physical keyboard events
+ *
+ * @param {Event} event The triggering event
+ */
+function handleKeyboardAction(event) {
+	const { altKey, ctrlKey, shiftKey, metaKey } = event;
 
-			if (!this.loaded) {
-				return;
-			}
+	if (!loaded.value) {
+		return;
+	}
 
-			if ([altKey, ctrlKey, shiftKey, metaKey].includes(true)) {
-				return;
-			}
-			if (this.gameOver) {
-				return;
-			}
-			if (['Tab', 'Space'].includes(event.code)) {
-				return;
-			}
+	if ([altKey, ctrlKey, shiftKey, metaKey].includes(true)) {
+		return;
+	}
+	if (gameOver.value) {
+		return;
+	}
+	if (['Tab', 'Space'].includes(event.code)) {
+		return;
+	}
 
-			event.stopPropagation();
-			event.preventDefault();
+	event.stopPropagation();
+	event.preventDefault();
 
-			if (event.key.match(/^[a-z]$/i)) {
-				this.updateCurrentGuess(event.key.toUpperCase());
-			} else if (['Delete', 'Backspace'].includes(event.key)) {
-				this.updateCurrentGuess('{Del}');
-			} else if (this.activeGuess.length == 5 && ['Enter', 'Return'].includes(event.key)) {
-				this.updateCurrentGuess('{Enter}');
-			}
-		},
+	if (event.key.match(/^[a-z]$/i)) {
+		updateCurrentGuess(event.key.toUpperCase());
+	} else if (['Delete', 'Backspace'].includes(event.key)) {
+		updateCurrentGuess('{Del}');
+	} else if (activeGuess.value.length == 5 && ['Enter', 'Return'].includes(event.key)) {
+		updateCurrentGuess('{Enter}');
+	}
+}
 
-		/**
-		 * Show the game UI when the intro is complete
-		 */
-		presentGame() {
-			for (let i = 1; i <= 6; i++) {
-				setTimeout(() => this.$refs[`row-${i}`][0].present(), i * 100);
-			}
+/**
+ * Show the game UI when the intro is complete
+ */
+function presentGame() {
+	for (let i = 0; i <= 5; i++) {
+		setTimeout(() => rows[i].present(), i * 100);
+	}
 
-			setTimeout(() => (this.loaded = true), 600);
-		},
+	setTimeout(() => (loaded.value = true), 600);
+}
 
-		/**
-		 * Choose a new word and reset the game UI
-		 */
-		resetGame() {
-			for (let i = 1; i <= 6; i++) {
-				this.$refs[`row-${i}`][0].resetPresentation();
-			}
+/**
+ * Choose a new word and reset the game UI
+ */
+function resetGame() {
+	for (let i = 0; i <= 5; i++) {
+		rows[i].resetPresentation();
+	}
 
-			this.gameOver = false;
-			this.gameWon = null;
-			this.activeGuessIndex = 0;
-			this.guesses = Array(6).fill('');
-			this.characters = {
-				appeared: [],
-				missed: [],
-				matched: [],
-			};
-			this.currentWord =
-				this.$store.state.data.words[
-					Math.floor(Math.random() * this.$store.state.data.words.length)
-				];
+	gameOver.value = false;
+	gameWon.value = null;
+	activeGuessIndex.value = 0;
+	guesses.value = Array(6).fill('');
 
-			setTimeout(this.presentGame, 500);
-		},
+	Object.assign(characters, {
+		appeared: [],
+		missed: [],
+		matched: [],
+	});
 
-		/**
-		 * Store the result of a game
-		 */
-		storeGameRecord() {
-			this.$store.commit('saveGameRecord', {
-				won: this.gameWon,
-				guesses: this.activeGuessIndex + (this.gameWon ? 1 : 0),
-				word: this.currentWord,
-			});
-		},
+	currentWord.value = words[Math.floor(Math.random() * words.length)];
 
-		/**
-		 * Set the value of the current guess based on physical or on-screen
-		 * keyboard input
-		 *
-		 * @param {String} value The key or value (such as {Del}) to update with
-		 */
-		updateCurrentGuess(value) {
-			const currentValue = this.activeGuess;
+	setTimeout(presentGame, 500);
+}
 
-			if (value == '{Del}') {
-				if (currentValue.length > 0) {
-					this.guesses[this.activeGuessIndex] = currentValue.slice(
-						0,
-						currentValue.length - 1,
-					);
-				}
-			} else if (currentValue.length == 5) {
-				if (value != '{Enter}') {
-					return;
-				} else {
-					this.checkGuess();
-				}
-			} else {
-				this.guesses[this.activeGuessIndex] += value;
-			}
-		},
-	},
-};
+/**
+ * Store the result of a game
+ */
+function storeGameRecord() {
+	saveGameRecord({
+		won: gameWon.value,
+		guesses: activeGuessIndex.value + (gameWon.value ? 1 : 0),
+		word: currentWord.value,
+	});
+}
+
+/**
+ * Set the value of the current guess based on physical or on-screen
+ * keyboard input
+ *
+ * @param {String} value The key or value (such as {Del}) to update with
+ */
+function updateCurrentGuess(value) {
+	const currentValue = activeGuess.value;
+
+	if (value == '{Del}') {
+		if (currentValue.length > 0) {
+			guesses.value[activeGuessIndex.value] = currentValue.slice(0, currentValue.length - 1);
+		}
+	} else if (currentValue.length == 5) {
+		if (value != '{Enter}') {
+			return;
+		} else {
+			checkGuess();
+		}
+	} else {
+		guesses.value[activeGuessIndex.value] += value;
+	}
+}
 </script>
 
 <style scoped lang="postcss">

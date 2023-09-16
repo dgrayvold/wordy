@@ -42,7 +42,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { onMounted, ref } from 'vue';
 import { Dialog, DialogOverlay, DialogTitle } from '@headlessui/vue';
 import WordRow from '@/components/WordRow.vue';
 
@@ -61,10 +61,12 @@ for (let x = 0; x < 5; x++) {
 	setTimeout(() => (currentWord.value = title.slice(0, x + 1)), (x + 1) * 150 + 400);
 }
 
-setTimeout(() => (rowState.value = 'complete'), 2000);
-setTimeout(() => (dialogDisplayed.value = false), 4000);
-setTimeout(() => {
-	dialogActive.value = false;
-	emit('complete');
-}, 4700);
+onMounted(() => {
+	setTimeout(() => (rowState.value = 'complete'), 2000);
+	setTimeout(() => (dialogDisplayed.value = false), 4000);
+	setTimeout(() => {
+		dialogActive.value = false;
+		emit('complete');
+	}, 4700);
+});
 </script>
