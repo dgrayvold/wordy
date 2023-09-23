@@ -24,7 +24,7 @@
 				grid grid-flow-row
 				justify-center
 				content-center
-				text-theme
+				text-light
 				w-full
 				h-full
 				top-0

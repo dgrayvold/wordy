@@ -118,7 +118,7 @@ function onKeyPress(button: string) {
 }
 
 .hg-button {
-	@apply !border-2 !border-transparent !bg-true-gray-700 font-bold text-theme transition-colors min-w-6 text-[1.2rem];
+	@apply !border-2 !border-transparent !bg-true-gray-700 font-bold text-light transition-colors min-w-6 text-[1.2rem];
 	@apply hover:(!bg-true-gray-500);
 }
 
@@ -127,15 +127,15 @@ function onKeyPress(button: string) {
 }
 
 .miss {
-	@apply !bg-black text-theme;
+	@apply !bg-black text-light;
 }
 
 .appear {
-	@apply !border-[#09f];
+	@apply !border-theme;
 }
 
 .match,
 .appear.match {
-	@apply !bg-[#09f] !text-black;
+	@apply !bg-theme !text-black;
 }
 </style>

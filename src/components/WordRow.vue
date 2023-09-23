@@ -116,7 +116,7 @@ function generateCharacterCellClasses(
 	cellIsDisplayed: boolean,
 ) {
 	const classes = {
-		'border-[#09f]': state == `active`,
+		'border-theme': state == `active`,
 		'border-[#037]': state != `active`,
 		'bg-blue-500': state == `complete` && characterState == `matches`,
 		'bg-black': state == `complete` && characterState == `misses`,
@@ -177,9 +177,9 @@ defineExpose({
 
 <style scoped lang="postcss">
 li {
-	@apply block text-theme block flex gap-4 mb-4 justify-center;
+	@apply block text-light block flex gap-4 mb-4 justify-center;
 }
 span {
-	@apply inline-block w-12 h-12 border-2 text-theme text-2xl text-center leading-11 rounded;
+	@apply inline-block w-12 h-12 border-2 text-light text-2xl text-center leading-11 rounded;
 }
 </style>

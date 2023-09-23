@@ -18,10 +18,10 @@
 				dialog-measurements dialog-content
 				flex flex-col
 				justify-end
-				border-2 border-[#09f]
+				border-2 border-theme
 				rounded-xl
 				bg-black
-				text-theme
+				text-light
 				overflow-y-scroll
 			"
 		>
@@ -46,7 +46,7 @@
 				>
 					<span> {{ guesses }}: </span>
 					<span
-						class="bg-[#09f] min-w-5 pl-1"
+						class="bg-theme min-w-5 pl-1 rounded"
 						:style="`width: ${(count / gamesWon) * 100}%`"
 					>
 						{{ count }}
@@ -102,8 +102,8 @@ const emit = defineEmits(['reset']);
 }
 
 button {
-	@apply w-full px-2 py-1 mt-4 border-2 border-[#09f] rounded transition-colors;
-	@apply hover:(bg-[#09f] text-black) focus:(bg-[#09f] text-black outline-none);
+	@apply w-full px-2 py-1 mt-4 border-2 border-theme rounded transition-colors;
+	@apply hover:(bg-theme text-black) focus:(bg-theme text-black outline-none);
 }
 
 .dialog-measurements {

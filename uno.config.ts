@@ -9,7 +9,8 @@ export default defineConfig({
 
 	theme: {
 		colors: {
-			theme: '#fcfcff',
+			theme: '#09f',
+			light: '#fcfcff',
 		},
 		fontFamily: {
 			exo: ['Exo', 'sans-serif'],
