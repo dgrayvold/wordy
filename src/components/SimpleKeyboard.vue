@@ -4,7 +4,7 @@
 	</div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { onMounted, ref, watch } from 'vue';
 import Keyboard from 'simple-keyboard';
 import 'simple-keyboard/build/css/index.css';
@@ -27,7 +27,7 @@ const props = defineProps({
 
 const emit = defineEmits(['change', 'keypress']);
 
-const keyboard = ref(null);
+const keyboard = ref<Keyboard>();
 
 onMounted(() => {
 	keyboard.value = new Keyboard('keyboard', {
@@ -46,9 +46,8 @@ onMounted(() => {
 	});
 });
 
-// Watch loaded prop
 watch(props, () => {
-	keyboard.value.setOptions({
+	keyboard.value?.setOptions({
 		theme: `hg-theme-default hg-layout-default myTheme`,
 	});
 });
@@ -57,6 +56,10 @@ watch(props, () => {
 watch(
 	props,
 	newValues => {
+		if (!newValues.characters) {
+			return;
+		}
+
 		const n = newValues.characters;
 		const buttonThemeEntries = [];
 
@@ -79,7 +82,7 @@ watch(
 			});
 		}
 
-		keyboard.value.setOptions({
+		keyboard.value?.setOptions({
 			buttonTheme: buttonThemeEntries,
 		});
 	},
@@ -91,7 +94,7 @@ watch(
  *
  * @param {String} input The input value that triggered the event
  */
-function onChange(input) {
+function onChange(input: string) {
 	emit('change', input);
 }
 
@@ -100,19 +103,9 @@ function onChange(input) {
  *
  * @param {String} button The value of the key that triggered the event
  */
-function onKeyPress(button) {
+function onKeyPress(button: string) {
 	emit('keypress', button);
 }
-</script>
-
-<script>
-export default {
-	watch: {
-		input(input) {
-			this.keyboard.setInput(input);
-		},
-	},
-};
 </script>
 
 <style lang="postcss">

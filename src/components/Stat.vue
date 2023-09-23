@@ -5,20 +5,16 @@
 	</li>
 </template>
 
-<script setup>
-const props = defineProps({
+<script setup lang="ts">
+defineProps<{
 	/**
 	 * The stat's value
 	 */
-	number: {
-		type: Number,
-	},
+	number: number;
 
 	/**
 	 * What the stat's value is for (e.g. 'Games won')
 	 */
-	subject: {
-		type: String,
-	},
-});
+	subject: string;
+}>();
 </script>

@@ -1,58 +1,54 @@
 <template>
 	<li ref="element">
 		<span
-			v-for="index in 5"
+			v-for="(_, index) in 5"
 			:key="index"
 			class="block max-w-500 transform transition-all"
-			:class="{
-				'border-[#09f]': state == `active`,
-				'border-[#037]': state != `active`,
-				'bg-blue-500': state == `complete` && characterMatches[index - 1] == `matches`,
-				'bg-black': state == `complete` && characterMatches[index - 1] == `misses`,
-				'bg-gray-500': state == `complete` && characterMatches[index - 1] == `appears`,
-				'!text-black': state == `complete` && characterMatches[index - 1] == `appears`,
-				'-rotate-30': state !== 'complete' && !displayed[index - 1],
-				'opacity-0': state !== 'complete' && !displayed[index - 1],
-			}"
+			:class="generateCharacterCellClasses(state, characterMatches[index], displayed[index])"
 		>
-			{{ currentGuess[index - 1] ?? `` }}
+			{{ currentGuess[index] }}
 		</span>
 	</li>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { computed, onMounted, ref } from 'vue';
 
-const props = defineProps({
-	/**
-	 * The current game's word
-	 */
-	word: { type: String, required: true },
+const props = withDefaults(
+	defineProps<{
+		/**
+		 * The current game's word
+		 */
+		word: string;
 
-	/**
-	 * The current user guess for this row
-	 */
-	currentGuess: { type: String, required: true },
+		/**
+		 * The current user guess for this row
+		 */
+		currentGuess: string;
 
-	/**
-	 * Whether or not the word row should animate on mount. If set to false,
-	 * call this.present() when ready to present
-	 */
-	presentOnMount: { type: Boolean, required: false, default: true },
+		/**
+		 * Whether or not the word row should animate on mount. If set to false,
+		 * call this.present() when ready to present
+		 */
+		presentOnMount?: boolean;
 
-	/**
-	 * Whether the current row is active, completed, or not yet started.
-	 * Possible values are 'active', 'complete', and 'inactive' respectively
-	 */
-	state: { type: String, required: true },
-});
+		/**
+		 * Whether the current row is active, completed, or not yet started
+		 */
+		state: 'active' | 'complete' | 'inactive';
+	}>(),
+	{
+		word: '',
+		presentOnMount: true,
+	},
+);
 
 /**
- * Whether each character box is visible
+ * Whether each character cell is visible
  */
-const displayed = ref(Array(5).fill(false));
+const displayed = ref<boolean[]>(Array(5).fill(false));
 
-const element = ref(null);
+const element = ref<Element>();
 
 /**
  * How each character relates to the corresponding answer's character
@@ -61,8 +57,8 @@ const element = ref(null);
 const characterMatches = computed(() => {
 	const currentGuessCharacters = Array.from(props.currentGuess);
 	const wordCharacters = Array.from(props.word);
-	let wordCharacterCounts = {};
-	let result = Array(5).fill('misses');
+	let wordCharacterCounts: { [key: string]: number } = {};
+	let result: string[] = Array(5).fill('misses');
 
 	// Map the occurrences of each letter
 	wordCharacters.forEach(character => {
@@ -82,7 +78,7 @@ const characterMatches = computed(() => {
 	});
 
 	// Mark characters appearing in word but in wrong place
-	wordCharacters.forEach((character, index, allCharacters) => {
+	wordCharacters.forEach((_character, index, allCharacters) => {
 		if (
 			!allCharacters.includes(currentGuessCharacters[index]) ||
 			wordCharacterCounts[currentGuessCharacters[index]] < 1
@@ -105,6 +101,36 @@ onMounted(() => {
 		present();
 	}
 });
+
+/**
+ *
+ * @param {String} state Whether the row is active or completed
+ * @param {String} characterState Whether the cell's character is a miss, match, or appearance
+ * @param {Boolean} cellIsDisplayed Whether the character cell is currently displayed
+ *
+ * @returns {String} The list of classes for the character cell
+ */
+function generateCharacterCellClasses(
+	state: string,
+	characterState: string,
+	cellIsDisplayed: boolean,
+) {
+	const classes = {
+		'border-[#09f]': state == `active`,
+		'border-[#037]': state != `active`,
+		'bg-blue-500': state == `complete` && characterState == `matches`,
+		'bg-black': state == `complete` && characterState == `misses`,
+		'bg-gray-500': state == `complete` && characterState == `appears`,
+		'!text-black': state == `complete` && characterState == `appears`,
+		'-rotate-30': state !== 'complete' && !cellIsDisplayed,
+		'opacity-0': state !== 'complete' && !cellIsDisplayed,
+	};
+
+	return Object.entries(classes)
+		.filter(([_, isIncluded]) => isIncluded)
+		.map(([name]) => name)
+		.join(' ');
+}
 
 /**
  * Shake the row to indicate the guess is not valid

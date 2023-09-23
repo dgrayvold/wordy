@@ -68,37 +68,24 @@
 	</Dialog>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { storeToRefs } from 'pinia';
-import { useSaveData } from '@/store/save-data.js';
+import { useSaveData } from '@/store/save-data';
 import Stat from '@/components/Stat.vue';
 import { Dialog, DialogOverlay, DialogTitle } from '@headlessui/vue';
 import ConfettiExplosion from 'vue-confetti-explosion';
 
-const props = defineProps({
-	/**
-	 * The word of the current game
-	 */
-	word: {
-		type: String,
+withDefaults(
+	defineProps<{
+		word: string;
+		active: boolean;
+		won: boolean;
+	}>(),
+	{
+		active: false,
+		won: false,
 	},
-
-	/**
-	 * Whether the dialog is visible
-	 */
-	active: {
-		type: Boolean,
-		default: false,
-	},
-
-	/**
-	 * Whether the current game was won
-	 */
-	won: {
-		type: Boolean,
-		default: false,
-	},
-});
+);
 
 const { distribution, currentStreak, bestStreak, onHighStreak, gamesWon } = storeToRefs(
 	useSaveData(),

@@ -2,13 +2,13 @@
 	<main class="flex flex-col justify-center items-between max-h-full">
 		<ul class="max-w-[90vw] mx-auto grid grid-flow-row pt-4 flex-grow content-center">
 			<WordRow
-				v-for="x in totalTries"
-				:ref="el => (rows[x - 1] = el)"
-				:key="x"
-				:word="currentWord ?? ``"
-				:currentGuess="guesses[Number(x) - 1]"
+				v-for="(_, index) in totalTries"
+				:ref="(r) => { rows[index] = r as InstanceType<typeof WordRow> }"
+				:key="index"
+				:word="currentWord"
+				:currentGuess="guesses[index]"
 				:presentOnMount="false"
-				:state="calculateRowState(x - 1)"
+				:state="calculateRowState(index)"
 			/>
 		</ul>
 
@@ -18,18 +18,23 @@
 	<client-only>
 		<IntroDialog @complete="presentGame" />
 
-		<GameOverDialog :active="gameOver" :won="gameWon" :word="currentWord" @reset="resetGame" />
+		<GameOverDialog
+			:active="gameOver"
+			:won="gameWon"
+			:word="(currentWord as string)"
+			@reset="resetGame"
+		/>
 	</client-only>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { computed, onMounted, reactive, ref } from 'vue';
 import WordRow from '@/components/WordRow.vue';
 import SimpleKeyboard from '@/components/SimpleKeyboard.vue';
 import GameOverDialog from '@/components/GameOverDialog.vue';
 import IntroDialog from '@/components/IntroDialog.vue';
-import { useSaveData } from '@/store/save-data.js';
-import { useWords } from '@/store/words.js';
+import { useSaveData } from '@/store/save-data';
+import { useWords } from '@/store/words';
 
 const { saveGameRecord } = useSaveData();
 
@@ -56,15 +61,20 @@ const activeGuessIndex = ref(0);
  * The list of characters guessed
  */
 const characters = reactive({
-	appeared: [], // In the word but not in the correct position
-	missed: [], // Not in the word
-	matched: [], // In the word in the correct position
+	// In the word but not in the correct position
+	appeared: [] as string[],
+
+	// Not in the word
+	missed: [] as string[],
+
+	// In the word in the correct position
+	matched: [] as string[],
 });
 
 /**
  * The word for the current round
  */
-const currentWord = ref(null);
+const currentWord = ref<string>();
 
 /**
  * Whether the game has finished
@@ -74,12 +84,12 @@ const gameOver = ref(false);
 /**
  * Whether the current game was won
  */
-const gameWon = ref(null);
+const gameWon = ref(false);
 
 /**
  * The list of guesses the user has made
  */
-const guesses = ref(Array(6).fill(''));
+const guesses = ref<string[]>(Array(6).fill(''));
 
 /**
  * Whether the game is ready to present
@@ -89,7 +99,7 @@ const loaded = ref(false);
 /**
  * The list of word row refs
  */
-const rows = reactive([]);
+const rows = ref<InstanceType<typeof WordRow>[]>([]);
 
 onMounted(async () => {
 	const randomPosition = Math.floor(Math.random() * words.length);
@@ -105,7 +115,7 @@ onMounted(async () => {
  *
  * @param {Number} rowIndex The index of the row to calculate the state of
  */
-function calculateRowState(rowIndex) {
+function calculateRowState(rowIndex: number) {
 	if (
 		activeGuessIndex.value > rowIndex ||
 		(gameOver.value && activeGuessIndex.value >= rowIndex)
@@ -124,7 +134,11 @@ function calculateRowState(rowIndex) {
 function checkGuess() {
 	// Current guess is not a recognized word
 	if (!words.includes(activeGuess.value)) {
-		rows[activeGuessIndex.value].indicateError();
+		rows.value[activeGuessIndex.value].indicateError();
+		return;
+	}
+
+	if (!currentWord.value) {
 		return;
 	}
 
@@ -169,7 +183,7 @@ function checkGuess() {
  *
  * @param {Event} event The triggering event
  */
-function handleKeyboardAction(event) {
+function handleKeyboardAction(event: KeyboardEvent) {
 	const { altKey, ctrlKey, shiftKey, metaKey } = event;
 
 	if (!loaded.value) {
@@ -203,7 +217,7 @@ function handleKeyboardAction(event) {
  */
 function presentGame() {
 	for (let i = 0; i <= 5; i++) {
-		setTimeout(() => rows[i].present(), i * 100);
+		setTimeout(() => rows.value[i].present(), i * 100);
 	}
 
 	setTimeout(() => (loaded.value = true), 600);
@@ -214,11 +228,11 @@ function presentGame() {
  */
 function resetGame() {
 	for (let i = 0; i <= 5; i++) {
-		rows[i].resetPresentation();
+		rows.value[i].resetPresentation();
 	}
 
 	gameOver.value = false;
-	gameWon.value = null;
+	gameWon.value = false;
 	activeGuessIndex.value = 0;
 	guesses.value = Array(6).fill('');
 
@@ -237,6 +251,10 @@ function resetGame() {
  * Store the result of a game
  */
 function storeGameRecord() {
+	if (!currentWord.value) {
+		return;
+	}
+
 	saveGameRecord({
 		won: gameWon.value,
 		guesses: activeGuessIndex.value + (gameWon.value ? 1 : 0),
@@ -250,7 +268,7 @@ function storeGameRecord() {
  *
  * @param {String} value The key or value (such as {Del}) to update with
  */
-function updateCurrentGuess(value) {
+function updateCurrentGuess(value: string) {
 	const currentValue = activeGuess.value;
 
 	if (value == '{Del}') {
@@ -269,9 +287,15 @@ function updateCurrentGuess(value) {
 }
 </script>
 
+<style lang="postcss">
+body {
+	@apply font-exo font-bold bg-black;
+}
+</style>
+
 <style scoped lang="postcss">
 main {
-	@apply bg-black w-full;
+	@apply w-full;
 
 	height: 100vh;
 	max-height: -webkit-fill-available;

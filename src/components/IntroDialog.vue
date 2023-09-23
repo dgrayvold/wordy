@@ -41,17 +41,21 @@
 	</Dialog>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { onMounted, ref } from 'vue';
 import { Dialog, DialogOverlay, DialogTitle } from '@headlessui/vue';
 import WordRow from '@/components/WordRow.vue';
 
 // Used to animate the title into the word row
 const currentWord = ref('');
+
 const title = 'WORDY';
-const rowState = ref('active');
+
+const rowState = ref<InstanceType<typeof WordRow>['$props']['state']>('active');
+
 // Whether the dialog is physically present
 const dialogActive = ref(true);
+
 // Whether the dialog is visible
 const dialogDisplayed = ref(true);
 

@@ -1,13 +1,12 @@
 import { ViteSSG } from 'vite-ssg/single-page';
 import { createPinia } from 'pinia';
-import piniaPluginPersistedstate from 'pinia-plugin-persistedstate';
 import App from './App.vue';
 import 'virtual:uno.css';
 import '@unocss/reset/tailwind.css';
 import '@fontsource/exo';
 import sourceWords from 'word-list/words.txt?raw';
 import { useSaveData } from '@/store/save-data';
-import { useWords } from '@/store/words.js';
+import { useWords } from '@/store/words';
 
 export const createApp = ViteSSG(App, ({ app, isClient, initialState }) => {
 	const pinia = createPinia();
@@ -25,8 +24,6 @@ export const createApp = ViteSSG(App, ({ app, isClient, initialState }) => {
 	}
 
 	if (isClient) {
-		pinia.use(piniaPluginPersistedstate);
-
 		const oldSaveData = localStorage.getItem('saveData');
 
 		if (oldSaveData != null) {
